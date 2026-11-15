@@ -13,7 +13,7 @@
 # What is this?
 This is a work-in-progress One UI 8.5 port for the Samsung Galaxy A21s, currently a solo project.
 
-It is based on Samsung's UX and it integrates probably nothing, I might give up before I even make it.
+It is based on Samsung's UX and it integrates probably nothing, I might give up before I even release something.
 
 The goal is to deliver a fast, smooth and modern UX while offering UN1CA's additional tools, modifications and system‑level enhancements tailored for power users.
 
