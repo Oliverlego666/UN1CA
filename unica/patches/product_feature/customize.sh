@@ -83,16 +83,23 @@ fi
 # SEC_PRODUCT_FEATURE_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION
 if [[ "$SOURCE_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION" != "$TARGET_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION" ]]; then
     if [[ "$SOURCE_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION" != "none" ]]; then
+        RECORDALIVE_FRAMEWORK_VERSION="$SOURCE_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION"
+        # S711BXXSJGZI6 reports 08020 in product configuration, but
+        # SemMultiMicManager embeds 07020 in both support methods.
+        if [[ "$TARGET_CODENAME" == "a21s" && "$SOURCE_FIRMWARE" == SM-S711B/* ]]; then
+            RECORDALIVE_FRAMEWORK_VERSION="07020"
+        fi
         SMALI_PATCH "system" "system/framework/framework.jar" \
             "smali_classes6/com/samsung/android/camera/mic/SemMultiMicManager.smali" "replace" \
             "isSupported()Z" \
-            "$SOURCE_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION" \
+            "$RECORDALIVE_FRAMEWORK_VERSION" \
             "${TARGET_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION//none/}"
         SMALI_PATCH "system" "system/framework/framework.jar" \
             "smali_classes6/com/samsung/android/camera/mic/SemMultiMicManager.smali" "replace" \
             "isSupported(I)Z" \
-            "$SOURCE_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION" \
+            "$RECORDALIVE_FRAMEWORK_VERSION" \
             "${TARGET_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION//none/}"
+        unset RECORDALIVE_FRAMEWORK_VERSION
     else
         # TODO handle this condition
         LOG_MISSING_PATCHES "SOURCE_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION" "TARGET_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION"
