@@ -276,12 +276,24 @@ else
     fi
 fi
 
-# Disable VaultKeeper support
-# Before: [tbnz w8, #0, #0xXXXXXX]
-# After: [b #0xXXXXXX]
-LOG "- Patching \"28f7773948050037\" to \"28f777392a000014\" in apex_payload/lib64/libbluetooth_jni.so"
-HEX_PATCH "$TMP_DIR/unknown/apex_payload/lib64/libbluetooth_jni.so" \
-    "28f7773948050037" "28f777392a000014" > /dev/null
+# The S711B 8.5 library has revised VaultKeeper retry/fallback logic.
+# Preserve its native secure-storage implementation for bring-up. The S22
+# binary patch is specific to the old donor and must not be applied to it.
+if [[ "$SOURCE_FIRMWARE" == SM-S711B/* ]]; then
+    BT_NATIVE_SHA="$(sha256sum "$TMP_DIR/unknown/apex_payload/lib64/libbluetooth_jni.so" | cut -d ' ' -f 1)"
+    if [[ "$BT_NATIVE_SHA" != "a8d978b28387223412b391c8ea4fb5b47ebdb8e4219012577f382fcadea0a167" ]]; then
+        ABORT "Unreviewed S711B Bluetooth native library: $BT_NATIVE_SHA"
+    fi
+    LOG "- Retaining One UI 8.5 native Bluetooth secure-storage implementation"
+    unset BT_NATIVE_SHA
+else
+    # Disable VaultKeeper support
+    # Before: [tbnz w8, #0, #0xXXXXXX]
+    # After: [b #0xXXXXXX]
+    LOG "- Patching \"28f7773948050037\" to \"28f777392a000014\" in apex_payload/lib64/libbluetooth_jni.so"
+    HEX_PATCH "$TMP_DIR/unknown/apex_payload/lib64/libbluetooth_jni.so" \
+        "28f7773948050037" "28f777392a000014" > /dev/null
+fi
 
 BUILD_APK_IN_APEX "$TMP_DIR/unknown/apex_payload/${BLUETOOTH_APK_REL}"
 BUILD_APK_IN_APEX "$TMP_DIR/unknown/apex_payload/javalib/framework-bluetooth.jar"
