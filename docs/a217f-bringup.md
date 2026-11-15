@@ -40,5 +40,5 @@ Read using `adb shell su -c lpdump` on the working ROM.
 - Group: group_basic; maximum 5553258496 bytes.
 - Metadata v10.0, 2 slots, maximum 65536 bytes.
 - Extent sizes in 512-byte sectors: system 8026144, vendor 1119504, product 1627272, odm 1040.
-- Existing images occupy 5516277760 bytes. The unused physical capacity is not automatically available within the current group limit.
+- Existing images occupy 5516267520 bytes. The unused physical capacity is not automatically available within the current group limit.
 - Use the observed group limit for baseline testing; do not enlarge it without verifying stock geometry and recovery compatibility.
