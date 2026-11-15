@@ -195,8 +195,13 @@ if [ "$TARGET_PLATFORM_SDK_VERSION" -lt "35" ]; then
     if [ -f "$WORK_DIR/vendor/bin/hw/vendor.samsung.hardware.light-service" ] && \
             ! xxd -p -c 4 "$WORK_DIR/vendor/bin/hw/vendor.samsung.hardware.light-service" | grep -q "1853$"; then
         PATCHED=true
-        APPLY_PATCH "system" "system/framework/services.jar" \
-            "$MODPATH/lights/services.jar/0001-Backport-legacy-SehLights-HAL-code.patch"
+        if [[ "$TARGET_CODENAME" == "a21s" && "$SOURCE_FIRMWARE" == SM-S711B/* ]]; then
+            APPLY_PATCH "system" "system/framework/services.jar" \
+                "$MODPATH/lights/services.jar/0001-Backport-legacy-SehLights-HAL-code-8.5.patch"
+        else
+            APPLY_PATCH "system" "system/framework/services.jar" \
+                "$MODPATH/lights/services.jar/0001-Backport-legacy-SehLights-HAL-code.patch"
+        fi
     fi
 fi
 
