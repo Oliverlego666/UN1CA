@@ -216,7 +216,7 @@ if $SOURCE_BLUETOOTH_SUPPORT_A2DP_OFFLOAD; then
             "$MODPATH/a2dp_offload/Bluetooth.apk/0001-Disable-SUPPORT_A2DP_OFFLOAD-support${BT_APK_PATCH_SUFFIX}.patch" \
             > /dev/null
         APPLY_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
-            "$MODPATH/a2dp_offload/SecSettings.apk/0001-Disable-SUPPORT_A2DP_OFFLOAD-support.patch"
+            "$MODPATH/a2dp_offload/SecSettings.apk/0001-Disable-SUPPORT_A2DP_OFFLOAD-support${BT_APK_PATCH_SUFFIX}.patch"
     fi
 else
     if $TARGET_BLUETOOTH_SUPPORT_A2DP_OFFLOAD; then
