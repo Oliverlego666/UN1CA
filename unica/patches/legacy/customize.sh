@@ -212,8 +212,21 @@ if [ "$TARGET_PLATFORM_SDK_VERSION" -lt "36" ]; then
             ! grep -q "ro.telephony.sim_slots.count" "$WORK_DIR/vendor/bin/secril_config_svc" && \
             ! grep -q -r "config_num_physical_slots" "$WORK_DIR/vendor/overlay"; then
         PATCHED=true
-        APPLY_PATCH "system" "system/framework/telephony-common.jar" \
-            "$MODPATH/ril/telephony-common.jar/0001-Backport-legacy-UiccController-code.patch"
+        if [[ "$TARGET_CODENAME" == "a21s" && "$SOURCE_FIRMWARE" == SM-S711B/* ]]; then
+            # S711BXXSJGZI6 already adjusts physical slots to mCis.length
+            # for legacy vendor API levels, before assigning PROJECT_SIM_NUM.
+            DECODE_APK "system" "system/framework/telephony-common.jar"
+            UICC_SMALI="$APKTOOL_DIR/system/framework/telephony-common.jar/smali/com/android/internal/telephony/uicc/UiccController.smali"
+            UICC_SHA="$(sha256sum "$UICC_SMALI" | cut -d ' ' -f 1)"
+            if [[ "$UICC_SHA" != "4edb8c2fb0ac3f56103eea92e8eb5a12a2737432352168a8b2a5fd95561eafa3" ]]; then
+                ABORT "Unreviewed S711B UiccController: $UICC_SHA"
+            fi
+            LOG "- Legacy UiccController slot adjustment already present in One UI 8.5"
+            unset UICC_SMALI UICC_SHA
+        else
+            APPLY_PATCH "system" "system/framework/telephony-common.jar" \
+                "$MODPATH/ril/telephony-common.jar/0001-Backport-legacy-UiccController-code.patch"
+        fi
     fi
 fi
 
