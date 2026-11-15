@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Import the two pinned One UI 8.0 baseline Odin ZIPs without re-downloading."""
+"""Import pinned baseline and experimental donor Odin ZIPs without re-downloading."""
 import argparse
 import hashlib
 from pathlib import Path
@@ -11,6 +11,7 @@ import zipfile
 
 FIRMWARE = {
     "s22": ("SM-S901B_EUX", "S901BXXSOGZH3/S901BOXMOGZH3/S901BXXSOGZH3"),
+    "s23fe": ("SM-S711B_EUX", "S711BXXSJGZI6/S711BOXMJGZI6/auto"),
     "a21s": ("SM-A217F_EGY", "A217FXXSCDXE2/A217FOJMCDXE3/A217FXXSCDXE1"),
 }
 
@@ -56,6 +57,16 @@ def main():
                 if name in members:
                     raise ValueError(f"Duplicate package: {name}")
                 members[name] = entry
+        if modem == "auto":
+            # CP can have a different revision than AP; read it from the exact archive.
+            cp_names = [name for name in members if name.startswith("CP_")]
+            if len(cp_names) != 1:
+                raise ValueError("Expected exactly one CP package")
+            match = re.match(r"^CP_(S711B[A-Z0-9]{8})(?:_|\.)", cp_names[0])
+            if not match:
+                raise ValueError(f"Unexpected S23 FE modem package: {cp_names[0]}")
+            modem = match.group(1)
+            version = f"{pda}/{csc}/{modem}"
         for prefix, build in (("AP_", pda), ("BL_", pda), ("CP_", modem)):
             if sum(name.startswith(prefix + build) for name in members) != 1:
                 raise ValueError(f"Expected exactly one {prefix}{build} package")
