@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Initial A21s One UI 8.5 bring-up: no compatible face HAL adapter yet. -->
+<permissions>
+    <unavailable-feature name="android.hardware.biometrics.face" />
+</permissions>
