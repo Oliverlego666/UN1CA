@@ -494,51 +494,92 @@ if [ "$TARGET_PLATFORM_SDK_VERSION" -lt "35" ]; then
     if ! find "$WORK_DIR/vendor/etc" -maxdepth 1 -type f -name "media_codecs*.xml" ! -name "*performance*" -exec cat {} + | \
             grep -q -P -z '<MediaCodec\s[^>]*name="c2\.(?!android\.|sec\.)[^"]*"(?:(?!</?MediaCodec[\s>])[\s\S])*?="video/'; then
         PATCHED=true
-        SMALI_PATCH "system" "system/app/MotionPhoto/MotionPhoto.apk" \
-            "smali/com/samsung/android/motionphoto/utils/v2/video/VideoTranscoder.smali" "replace" \
-            'configVideoEncoderParameters(Landroid/media/MediaFormat;Lcom/samsung/android/motionphoto/utils/v2/video/VideoTranscodingTask;)V' \
-            'const p2, 0x7f420888' \
-            'const p2, 0x7f000789'
-        SMALI_PATCH "system" "system/app/MotionPhoto/MotionPhoto.apk" \
-            "smali/com/samsung/android/sum/core/filter/EncoderFilter.smali" "replace" \
-            'configCodec(Lcom/samsung/android/sum/core/message/Message;)V' \
-            'const v4, 0x7f420888' \
-            'const v4, 0x7f000789'
-        if xxd -p -c 0 "$WORK_DIR/system/system/lib/libstagefright.so" | grep -q "ceec002848d1724c0620"; then
-            HEX_PATCH "$WORK_DIR/system/system/lib/libstagefright.so" \
-                "ceec002848d1724c0620" "ceec002848e0724c0620"
-        elif xxd -p -c 0 "$WORK_DIR/system/system/lib/libstagefright.so" | grep -q "aaea002879d1264c0620"; then
-            HEX_PATCH "$WORK_DIR/system/system/lib/libstagefright.so" \
-                "aaea002879d1264c0620" "aaea002879e0264c0620"
+        if [[ "$TARGET_CODENAME" == "a21s" && "$SOURCE_FIRMWARE" == SM-S711B/* ]]; then
+            # S711BXXSJGZI6 reorganizes MotionPhoto and changes the encoder registers.
+            # Keep the legacy OMX surface format adjustment scoped to verified methods.
+            if [ -f "$WORK_DIR/system/system/priv-app/GlobalPostProcMgr/GlobalPostProcMgr.apk" ]; then
+                ABORT "Unexpected GlobalPostProcMgr APK in reviewed S711B donor; inspect its encoder before proceeding"
+            fi
+            if [[ "$(sha256sum "$WORK_DIR/system/system/lib/libstagefright.so" | cut -d ' ' -f 1)" != "3bc6d9f31f79ea9953a002376ee57b1c82ef3619f0ea863ce8d5ec19bc8d92ab" ]] || \
+                [[ "$(sha256sum "$WORK_DIR/system/system/lib64/libstagefright.so" | cut -d ' ' -f 1)" != "564f9b89ac31a439ff0573f998b9ca5444b474c31a404b1c1b542aaf81f04635" ]]; then
+                ABORT "Unreviewed S711B stagefright binaries"
+            fi
+            SMALI_PATCH "system" "system/app/MotionPhoto/MotionPhoto.apk" \
+                "smali/com/samsung/android/motionphoto/utils/v2/video/transcoding/VideoTrackTranscoder.smali" "replace" \
+                'getVideoEncodingFormat(Lcom/samsung/android/motionphoto/utils/v2/video/VideoTranscodingTask;)Landroid/media/MediaFormat;' \
+                'const v1, 0x7f420888' \
+                'const v1, 0x7f000789'
+            SMALI_PATCH "system" "system/app/MotionPhoto/MotionPhoto.apk" \
+                "smali/com/samsung/android/motionphoto/utils/v2/video/transition/renderer/TransitionEncoder.smali" "replace" \
+                'createEncoder()Landroid/media/MediaCodec;' \
+                'const v2, 0x7f420888' \
+                'const v2, 0x7f000789'
+            SMALI_PATCH "system" "system/app/MotionPhoto/MotionPhoto.apk" \
+                "smali/com/samsung/android/sum/core/filter/EncoderFilter.smali" "replace" \
+                'configCodec(Lcom/samsung/android/sum/core/message/Message;)V' \
+                'const v4, 0x7f420888' \
+                'const v4, 0x7f000789'
+            SMALI_PATCH "system" "system/priv-app/SamsungCamera/SamsungCamera.apk" \
+                "smali_classes3/com/samsung/android/sum/core/filter/EncoderFilter.smali" "replace" \
+                'configCodec(Lcom/samsung/android/sum/core/message/Message;)V' \
+                'const v4, 0x7f420888' \
+                'const v4, 0x7f000789'
+            SMALI_PATCH "system" "system/priv-app/vexfwk_service/vexfwk_service.apk" \
+                "smali/com/samsung/android/sum/core/filter/EncoderFilter.smali" "replace" \
+                'configCodec(Lcom/samsung/android/sum/core/message/Message;)V' \
+                'const v2, 0x7f420888' \
+                'const v2, 0x7f000789'
+            # The native 8.0 patch removes an HDR10+ recording limitation.
+            # Neither legacy signature matches the 8.5 libraries. Keep that
+            # limitation rather than blindly rewriting a native branch.
+            LOG "- Retaining S711B native HDR10+ encoder restrictions (bring-up limitation)"
         else
-            ABORT "No known patch available for the supplied libstagefright.so"
-        fi
-        if xxd -p -c 0 "$WORK_DIR/system/system/lib64/libstagefright.so" | grep -q "70690594205100347a9a40f9"; then
-            HEX_PATCH "$WORK_DIR/system/system/lib64/libstagefright.so" \
-                "70690594205100347a9a40f9" "706905941f2003d57a9a40f9"
-        elif xxd -p -c 0 "$WORK_DIR/system/system/lib64/libstagefright.so" | grep -q "864d0594604d00347a9a40f9"; then
-            HEX_PATCH "$WORK_DIR/system/system/lib64/libstagefright.so" \
-                "864d0594604d00347a9a40f9" "864d05941f2003d57a9a40f9"
-        else
-            ABORT "No known patch available for the supplied libstagefright.so"
-        fi
-        if [ -f "$WORK_DIR/system/system/priv-app/GlobalPostProcMgr/GlobalPostProcMgr.apk" ]; then
-            SMALI_PATCH "system" "system/priv-app/GlobalPostProcMgr/GlobalPostProcMgr.apk" \
+            SMALI_PATCH "system" "system/app/MotionPhoto/MotionPhoto.apk" \
+                "smali/com/samsung/android/motionphoto/utils/v2/video/VideoTranscoder.smali" "replace" \
+                'configVideoEncoderParameters(Landroid/media/MediaFormat;Lcom/samsung/android/motionphoto/utils/v2/video/VideoTranscodingTask;)V' \
+                'const p2, 0x7f420888' \
+                'const p2, 0x7f000789'
+            SMALI_PATCH "system" "system/app/MotionPhoto/MotionPhoto.apk" \
+                "smali/com/samsung/android/sum/core/filter/EncoderFilter.smali" "replace" \
+                'configCodec(Lcom/samsung/android/sum/core/message/Message;)V' \
+                'const v4, 0x7f420888' \
+                'const v4, 0x7f000789'
+            if xxd -p -c 0 "$WORK_DIR/system/system/lib/libstagefright.so" | grep -q "ceec002848d1724c0620"; then
+                HEX_PATCH "$WORK_DIR/system/system/lib/libstagefright.so" \
+                    "ceec002848d1724c0620" "ceec002848e0724c0620"
+            elif xxd -p -c 0 "$WORK_DIR/system/system/lib/libstagefright.so" | grep -q "aaea002879d1264c0620"; then
+                HEX_PATCH "$WORK_DIR/system/system/lib/libstagefright.so" \
+                    "aaea002879d1264c0620" "aaea002879e0264c0620"
+            else
+                ABORT "No known patch available for the supplied libstagefright.so"
+            fi
+            if xxd -p -c 0 "$WORK_DIR/system/system/lib64/libstagefright.so" | grep -q "70690594205100347a9a40f9"; then
+                HEX_PATCH "$WORK_DIR/system/system/lib64/libstagefright.so" \
+                    "70690594205100347a9a40f9" "706905941f2003d57a9a40f9"
+            elif xxd -p -c 0 "$WORK_DIR/system/system/lib64/libstagefright.so" | grep -q "864d0594604d00347a9a40f9"; then
+                HEX_PATCH "$WORK_DIR/system/system/lib64/libstagefright.so" \
+                    "864d0594604d00347a9a40f9" "864d05941f2003d57a9a40f9"
+            else
+                ABORT "No known patch available for the supplied libstagefright.so"
+            fi
+            if [ -f "$WORK_DIR/system/system/priv-app/GlobalPostProcMgr/GlobalPostProcMgr.apk" ]; then
+                SMALI_PATCH "system" "system/priv-app/GlobalPostProcMgr/GlobalPostProcMgr.apk" \
+                    "smali/com/samsung/android/sum/core/filter/EncoderFilter.smali" "replace" \
+                    'configCodec(Lcom/samsung/android/sum/core/message/Message;)V' \
+                    'const v3, 0x7f420888' \
+                    'const v3, 0x7f000789'
+            fi
+            SMALI_PATCH "system" "system/priv-app/SamsungCamera/SamsungCamera.apk" \
+                "smali_classes3/com/samsung/android/sum/core/filter/EncoderFilter.smali" "replace" \
+                'configCodec(Lcom/samsung/android/sum/core/message/Message;)V' \
+                'const v4, 0x7f420888' \
+                'const v4, 0x7f000789'
+            SMALI_PATCH "system" "system/priv-app/vexfwk_service/vexfwk_service.apk" \
                 "smali/com/samsung/android/sum/core/filter/EncoderFilter.smali" "replace" \
                 'configCodec(Lcom/samsung/android/sum/core/message/Message;)V' \
                 'const v3, 0x7f420888' \
                 'const v3, 0x7f000789'
         fi
-        SMALI_PATCH "system" "system/priv-app/SamsungCamera/SamsungCamera.apk" \
-            "smali_classes3/com/samsung/android/sum/core/filter/EncoderFilter.smali" "replace" \
-            'configCodec(Lcom/samsung/android/sum/core/message/Message;)V' \
-            'const v4, 0x7f420888' \
-            'const v4, 0x7f000789'
-        SMALI_PATCH "system" "system/priv-app/vexfwk_service/vexfwk_service.apk" \
-            "smali/com/samsung/android/sum/core/filter/EncoderFilter.smali" "replace" \
-            'configCodec(Lcom/samsung/android/sum/core/message/Message;)V' \
-            'const v3, 0x7f420888' \
-            'const v3, 0x7f000789'
     fi
 fi
 
