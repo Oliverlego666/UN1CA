@@ -25,3 +25,12 @@ SMALI_PATCH "system" "system/framework/services.jar" \
     '<clinit>()V' \
     'ro.product.model' \
     'ro.product.vendor.model'
+
+# Preserve the mismatch warning on the experimental A21s 8.5 port.
+# It is useful during bring-up and the legacy dialog patch is not compatible.
+if [[ "$TARGET_CODENAME" == "a21s" && "$SOURCE_FIRMWARE" == SM-S711B/* ]]; then
+    LOG "- Retaining vendor mismatch warning for One UI 8.5 bring-up"
+else
+    APPLY_PATCH "system" "system/framework/services.jar" \
+        "$MODPATH/vendor_mismatch/services.jar/0001-Disable-vendor-mismatch-warning.patch"
+fi
