@@ -180,13 +180,19 @@ BLUETOOTH_APK_REL="${BLUETOOTH_APK_MATCHES[0]#"$TMP_DIR/unknown/apex_payload/"}"
 LOG "- Found Bluetooth APK: $BLUETOOTH_APK_REL"
 unset BLUETOOTH_APK_MATCHES
 
+# Version-specific APK patches verified against S711BXXSJGZI6.
+BT_APK_PATCH_SUFFIX=""
+if [[ "$SOURCE_FIRMWARE" == SM-S711B/* ]]; then
+    BT_APK_PATCH_SUFFIX="-8.5"
+fi
+
 # SEC_PRODUCT_FEATURE_BLUETOOTH_SUPPORT_A2DPSINK_PROFILE
 if $SOURCE_BLUETOOTH_SUPPORT_A2DPSINK_PROFILE; then
     if ! $TARGET_BLUETOOTH_SUPPORT_A2DPSINK_PROFILE; then
         DECODE_APK_IN_APEX "$TMP_DIR/unknown/apex_payload/${BLUETOOTH_APK_REL}"
         LOG "- Applying \"Disable SUPPORT_A2DPSINK_PROFILE support\" to apex_payload/${BLUETOOTH_APK_REL}"
         APPLY_PATCH "system" "system/${BLUETOOTH_APK_REL}" \
-            "$MODPATH/a2dp_sink/Bluetooth.apk/0001-Disable-SUPPORT_A2DPSINK_PROFILE-support.patch" \
+            "$MODPATH/a2dp_sink/Bluetooth.apk/0001-Disable-SUPPORT_A2DPSINK_PROFILE-support${BT_APK_PATCH_SUFFIX}.patch" \
             > /dev/null
         DECODE_APK_IN_APEX "$TMP_DIR/unknown/apex_payload/javalib/framework-bluetooth.jar"
         LOG "- Applying \"Disable SUPPORT_A2DPSINK_PROFILE support\" to apex_payload/javalib/framework-bluetooth.jar"
@@ -207,7 +213,7 @@ if $SOURCE_BLUETOOTH_SUPPORT_A2DP_OFFLOAD; then
         DECODE_APK_IN_APEX "$TMP_DIR/unknown/apex_payload/${BLUETOOTH_APK_REL}"
         LOG "- Applying \"Disable SUPPORT_A2DP_OFFLOAD support\" to apex_payload/${BLUETOOTH_APK_REL}"
         APPLY_PATCH "system" "system/${BLUETOOTH_APK_REL}" \
-            "$MODPATH/a2dp_offload/Bluetooth.apk/0001-Disable-SUPPORT_A2DP_OFFLOAD-support.patch" \
+            "$MODPATH/a2dp_offload/Bluetooth.apk/0001-Disable-SUPPORT_A2DP_OFFLOAD-support${BT_APK_PATCH_SUFFIX}.patch" \
             > /dev/null
         APPLY_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
             "$MODPATH/a2dp_offload/SecSettings.apk/0001-Disable-SUPPORT_A2DP_OFFLOAD-support.patch"
@@ -286,7 +292,7 @@ SIGN_APEX "$WORK_DIR/system/system/apex/com.android.bt.apex"
 
 rm -rf "$TMP_DIR"
 
-unset SOURCE_FIRMWARE_PATH BLUETOOTH_APK_REL
+unset SOURCE_FIRMWARE_PATH BLUETOOTH_APK_REL BT_APK_PATCH_SUFFIX
 unset -f BUILD_APK_IN_APEX BUILD_APEX BUILD_PAYLOAD \
     DECODE_APEX DECODE_APK_IN_APEX EXTRACT_PAYLOAD \
     LOG_MISSING_PATCHES SIGN_APEX SIGN_PAYLOAD

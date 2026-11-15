@@ -1,0 +1,35 @@
+Subject: [PATCH] Rebase A2DP sink for One UI 8.5
+
+--- a/smali/com/samsung/bt/a2dp/InstantProfile$1.smali
++++ b/smali/com/samsung/bt/a2dp/InstantProfile$1.smali
+@@ -93,6 +93,30 @@
+     return-void
+ 
+     :cond_0
++    const-string v2, "com.samsung.bluetooth.btservice.action.ACTION_REGISTER_A2DP_SINK_SERVICE"
++
++    invoke-virtual {v2, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
++
++    move-result v2
++
++    if-nez v2, :a21s_sink_unsupported
++
++    const-string v2, "com.samsung.bluetooth.btservice.action.ACTION_ENABLE_A2DP_SINK_SERVICE"
++
++    invoke-virtual {v2, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
++
++    move-result v2
++
++    if-eqz v2, :a21s_sink_other
++
++    :a21s_sink_unsupported
++    const-string v2, "SINK service is not supported by this model"
++
++    invoke-static {v1, v2}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
++
++    return-void
++
++    :a21s_sink_other
+     const-string v2, "EXTRA.ENABLE.SERVICE"
+ 
+     const/4 v3, 0x0
