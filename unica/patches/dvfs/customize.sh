@@ -63,12 +63,37 @@ if [[ "$SOURCE_DVFSAPP_CONFIG_SSRM_POLICY_FILENAME" != "$TARGET_DVFSAPP_CONFIG_S
         EVAL "cp -a \"$MODPATH/assets/siop_default.xml\" \"$APKTOOL_DIR/system/priv-app/SamsungDeviceHealthManagerService/SamsungDeviceHealthManagerService.apk/assets/ssrm_default.xml\""
     fi
 
-    # com/sec/android/sdhms/util/Feature
+    # com/sec/android/sdhms/util/Feature (obfuscated differently between releases).
+    SDHMS_FEATURE_SMALI="smali/U1/w.smali"
+    if [[ "$SOURCE_FIRMWARE" == SM-S711B/* ]]; then
+        SDHMS_DECODED="$APKTOOL_DIR/system/priv-app/SamsungDeviceHealthManagerService/SamsungDeviceHealthManagerService.apk"
+        SDHMS_FEATURE_MATCHES=()
+        while IFS= read -r -d '' candidate; do
+            if awk -v value="$SOURCE_DVFSAPP_CONFIG_SSRM_POLICY_FILENAME" '
+                /^\.method[[:space:]].*<clinit>\(\)V$/ { inside=1; next }
+                /^\.end method/ { inside=0 }
+                inside && /^[[:space:]]*const-string(\/jumbo)?[[:space:]]/ &&
+                    index($0, "\"" value "\"") { found=1 }
+                END { exit !found }
+            ' "$candidate"; then
+                SDHMS_FEATURE_MATCHES+=("${candidate#"$SDHMS_DECODED/"}")
+            fi
+        done < <(grep -rlZ -F --include='*.smali' "\"$SOURCE_DVFSAPP_CONFIG_SSRM_POLICY_FILENAME\"" "$SDHMS_DECODED")
+        if [ "${#SDHMS_FEATURE_MATCHES[@]}" -ne 1 ]; then
+            LOGE "Expected exactly one SDHMS initializer with $SOURCE_DVFSAPP_CONFIG_SSRM_POLICY_FILENAME; found ${#SDHMS_FEATURE_MATCHES[@]}"
+            printf '%s\n' "${SDHMS_FEATURE_MATCHES[@]}" >&2
+            ABORT "Cannot safely identify SDHMS policy initializer"
+        fi
+        SDHMS_FEATURE_SMALI="${SDHMS_FEATURE_MATCHES[0]}"
+        LOG "- Found SDHMS policy class: $SDHMS_FEATURE_SMALI"
+        unset SDHMS_DECODED SDHMS_FEATURE_MATCHES candidate
+    fi
     SMALI_PATCH "system" "system/priv-app/SamsungDeviceHealthManagerService/SamsungDeviceHealthManagerService.apk" \
-        "smali/U1/w.smali" "replace" \
+        "$SDHMS_FEATURE_SMALI" "replace" \
         "<clinit>()V" \
         "$SOURCE_DVFSAPP_CONFIG_SSRM_POLICY_FILENAME" \
         "$TARGET_DVFSAPP_CONFIG_SSRM_POLICY_FILENAME"
+    unset SDHMS_FEATURE_SMALI
 fi
 
 if [ -f "$SRC_DIR/target/$TARGET_CODENAME/dvfs/siop_model.xml" ]; then
