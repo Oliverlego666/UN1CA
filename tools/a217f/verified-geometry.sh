@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Verified live geometry only; not a complete UN1CA target.
+TARGET_USE_DYNAMIC_PARTITIONS=true
+TARGET_SUPER_PARTITION_SIZE=9126805504
+TARGET_SUPER_GROUP_NAME="group_basic"
+TARGET_GROUP_BASIC_SIZE=5553258496
