@@ -18,3 +18,7 @@ SOURCE_LCD_SUPPORT_MDNIE_HW=false
 
 # Optical fingerprint type observed in XML; exact framework string still to verify.
 SOURCE_FINGERPRINT_CONFIG_SENSOR="google_touch_display_optical"
+
+# Verified against S711B SecureElement.apk UtilExtension.smali.
+SOURCE_SECURITY_CONFIG_ESE_CHIP_VENDOR="GEMALTO"
+SOURCE_SECURITY_CONFIG_ESE_COS_NAME="UT8.0U"

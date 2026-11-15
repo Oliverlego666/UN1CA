@@ -1,0 +1,51 @@
+Subject: [PATCH] Report absent embedded Secure Element on A21s
+
+--- a/smali/com/android/se/internal/UtilExtension.smali
++++ b/smali/com/android/se/internal/UtilExtension.smali
+@@ -29,13 +29,7 @@
+ 
+     sput-object v0, Lcom/android/se/internal/UtilExtension;->DUMP_ID:[B
+ 
+-    const-string v0, "UT8.0U"
+-
+-    invoke-virtual {v0}, Ljava/lang/String;->isBlank()Z
+-
+-    move-result v0
+-
+-    xor-int/lit8 v0, v0, 0x1
++    const/4 v0, 0x0
+ 
+     sput-boolean v0, Lcom/android/se/internal/UtilExtension;->mSupportEseHal:Z
+ 
+@@ -828,11 +822,11 @@
+ 
+     invoke-static {v0, v3}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+ 
+-    const-string v3, "eSE_COS: UT8.0U"
++    const-string v3, "eSE_COS: "
+ 
+     invoke-static {v0, v3}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+ 
+-    const-string v3, "eSE_Vendor: GEMALTO"
++    const-string v3, "eSE_Vendor: "
+ 
+     invoke-static {v0, v3}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+ 
+@@ -971,6 +965,8 @@
+ 
+     invoke-static {v0, p0}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+ 
++    const/4 v1, 0x0
++
+     return v1
+ .end method
+ 
+@@ -997,7 +993,7 @@
+ 
+     invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+ 
+-    const-string v1, "UT8.0U"
++    const-string v1, ""
+ 
+     invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+ 

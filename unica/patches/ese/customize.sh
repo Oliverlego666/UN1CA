@@ -20,10 +20,16 @@ if [[ "$SOURCE_SECURITY_CONFIG_ESE_CHIP_VENDOR" == "$TARGET_SECURITY_CONFIG_ESE_
     return 0
 fi
 
-if [[ "$SOURCE_SECURITY_CONFIG_ESE_CHIP_VENDOR" == "NXP" ]] && [[ "$SOURCE_SECURITY_CONFIG_ESE_COS_NAME" == "JCOP6.2U" ]] && \
-        [[ "$TARGET_SECURITY_CONFIG_ESE_CHIP_VENDOR" == "none" ]] && [[ "$TARGET_SECURITY_CONFIG_ESE_COS_NAME" == "none" ]]; then
-    APPLY_PATCH "system" "system/app/SecureElement/SecureElement.apk" \
-        "$MODPATH/ese/SecureElement.apk/0001-Disable-eSE-support.patch"
+if { [[ "$SOURCE_SECURITY_CONFIG_ESE_CHIP_VENDOR" == "NXP" && "$SOURCE_SECURITY_CONFIG_ESE_COS_NAME" == "JCOP6.2U" ]] || \
+        [[ "$TARGET_CODENAME" == "a21s" && "$SOURCE_FIRMWARE" == SM-S711B/* && "$SOURCE_SECURITY_CONFIG_ESE_CHIP_VENDOR" == "GEMALTO" && "$SOURCE_SECURITY_CONFIG_ESE_COS_NAME" == "UT8.0U" ]]; } && \
+        [[ "$TARGET_SECURITY_CONFIG_ESE_CHIP_VENDOR" == "none" && "$TARGET_SECURITY_CONFIG_ESE_COS_NAME" == "none" ]]; then
+    if [[ "$SOURCE_FIRMWARE" == SM-S711B/* ]]; then
+        APPLY_PATCH "system" "system/app/SecureElement/SecureElement.apk" \
+            "$MODPATH/ese/SecureElement.apk/0001-Disable-eSE-support-8.5.patch"
+    else
+        APPLY_PATCH "system" "system/app/SecureElement/SecureElement.apk" \
+            "$MODPATH/ese/SecureElement.apk/0001-Disable-eSE-support.patch"
+    fi
     DELETE_FROM_WORK_DIR "system" "system/bin/sem_daemon"
     DELETE_FROM_WORK_DIR "system" "system/etc/init/sem.rc" 2>&1 | sed "/File not found/d"
     DELETE_FROM_WORK_DIR "system" "system/etc/init/sem_early.rc" 2>&1 | sed "/File not found/d"
