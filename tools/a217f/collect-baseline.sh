@@ -3,7 +3,7 @@
 # Read-only baseline capture; no root, flashing, or device identifiers.
 set -euo pipefail
 command -v adb >/dev/null || { echo "adb is required" >&2; exit 1; }
-adb get-state | grep -qx device || { echo "Connect and authorize one A21s" >&2; exit 1; }
+adb get-state | tr -d '\r' | grep -qx device || { echo "Connect and authorize one A21s" >&2; exit 1; }
 out="${1:-a217f-baseline.txt}"
 {
     echo "=== Selected properties ==="
