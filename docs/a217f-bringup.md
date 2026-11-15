@@ -19,7 +19,6 @@ Status: research only; no flashable images or target configuration yet.
 
 ## Required before packaging
 
-- Actual super capacity, logical group name and group maximum size (lpdump)
 - Boot, dtbo, recovery and cache partition sizes
 - Actual system/vendor/product/odm mounts
 - Source and build instructions for the working A21s port, including matching kernel and ramdisk
@@ -32,3 +31,14 @@ Status: research only; no flashable images or target configuration yet.
 - https://github.com/ProjectDozG/UN1CA-8.5 (candidate, unverified donor/patch compatibility)
 
 Do not copy old super/group sizes blindly: the historical configuration assigns equal sizes, whereas the current generator requires space for metadata. Do not flash donor bootloader/modem/boot images onto the A21s. Preserve the working baseline and verify recovery/backup paths before testing.
+
+## Verified live logical partition metadata
+
+Read using `adb shell su -c lpdump` on the working ROM.
+
+- Super device: 9126805504 bytes; first sector 2048.
+- Group: group_basic; maximum 5553258496 bytes.
+- Metadata v10.0, 2 slots, maximum 65536 bytes.
+- Extent sizes in 512-byte sectors: system 8026144, vendor 1119504, product 1627272, odm 1040.
+- Existing images occupy 5516277760 bytes. The unused physical capacity is not automatically available within the current group limit.
+- Use the observed group limit for baseline testing; do not enlarge it without verifying stock geometry and recovery compatibility.
