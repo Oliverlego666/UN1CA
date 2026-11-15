@@ -61,6 +61,10 @@ elif [ ! -f "$SRC_DIR/unica/configs/$TARGET_OS_SINGLE_SYSTEM_IMAGE.sh" ]; then
     exit 1
 else
     source "$SRC_DIR/unica/configs/$TARGET_OS_SINGLE_SYSTEM_IMAGE.sh" || exit 1
+    # A target can override donor settings without changing the shared SSI type.
+    if [ -f "$SRC_DIR/target/$1/source-config.sh" ]; then
+        source "$SRC_DIR/target/$1/source-config.sh" || exit 1
+    fi
 fi
 
 if [ -f "$OUT_DIR/config.sh" ]; then

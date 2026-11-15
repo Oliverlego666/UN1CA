@@ -1,3 +1,4 @@
+# Keep the proven S22 donor vendor blob set for A21s; the OS donor is independent.
 BLOBS_LIST="
 lib/android.hardware.audio.common@5.0-util.so
 lib/hw/android.hardware.audio.effect@5.0-impl.so
@@ -37,7 +38,7 @@ lib64/hw/android.hardware.audio@2.0-impl.so
 lib64/hw/android.hardware.audio@6.0-impl.so
 "
 for blob in $AUDIO_BLOBS; do
-  ADD_TO_WORK_DIR "$SOURCE_FIRMWARE" "vendor" "$blob"
+  ADD_TO_WORK_DIR "SM-S901B/EUX/350330051234562" "vendor" "$blob"
 done
 
 LOG "- Updating audio HAL versions in the vendor manifest"

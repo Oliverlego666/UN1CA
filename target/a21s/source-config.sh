@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Experimental One UI 8.5 donor override for A21s only.
+# Inherits shared ESSI settings; unverified framework-specific values are provisional.
+SOURCE_FIRMWARE="SM-S711B/EUX/35001160"
+SOURCE_EXTRA_FIRMWARES=("SM-S901B/EUX/350330051234562")
+SOURCE_PLATFORM_SDK_VERSION=36
+SOURCE_PRODUCT_SHIPPING_API_LEVEL=33
+SOURCE_BOARD_API_LEVEL=31
+SOURCE_SUPER_GROUP_NAME="group_basic"
+
+# Observed differences in S711BXXSJGZI6 floating_feature.xml.
+SOURCE_COMMON_CONFIG_MDNIE_MODE="37905"
+SOURCE_COMMON_SUPPORT_HDR_EFFECT=false
+SOURCE_DVFSAPP_CONFIG_SSRM_POLICY_FILENAME="siop_r11s_exynos2200"
+SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE="60,120"
+SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS="none"
+SOURCE_LCD_SUPPORT_MDNIE_HW=false
+
+# Optical fingerprint type observed in XML; exact framework string still to verify.
+SOURCE_FINGERPRINT_CONFIG_SENSOR="google_touch_display_optical"

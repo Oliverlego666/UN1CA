@@ -1,3 +1,4 @@
+# Keep the proven S22 donor vendor blob set for A21s; the OS donor is independent.
 BLOBS_LIST="
 bin/hw/android.hardware.audio.service
 lib/libsehbluetooth_audio_session.so
@@ -18,5 +19,5 @@ lib64/hw/vendor.samsung.hardware.bluetooth.a2dp@1.0-impl.so
 lib64/hw/vendor.samsung.hardware.bluetooth.audio@2.1-impl.so
 "
 for blob in $BLOBS_LIST; do
-    ADD_TO_WORK_DIR "$SOURCE_FIRMWARE" "vendor" "$blob"
+    ADD_TO_WORK_DIR "SM-S901B/EUX/350330051234562" "vendor" "$blob"
 done

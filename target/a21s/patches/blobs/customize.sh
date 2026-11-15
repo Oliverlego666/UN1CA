@@ -1,3 +1,4 @@
+# Keep the proven S22 donor vendor blob set for A21s; the OS donor is independent.
 SKIPUNZIP=1
 
 LOG_STEP_IN "- Replacing source's SoundBooster libs with s21 ones"
@@ -25,9 +26,9 @@ ADD_TO_WORK_DIR "$MODPATH" "vendor" "lib64/hw/android.hardware.gnss@2.1-impl.so"
 LOG_STEP_OUT
 
 LOG_STEP_IN "- Updating Vibrator HAL"
-ADD_TO_WORK_DIR "$SOURCE_FIRMWARE" "vendor" "bin/hw/vendor.samsung.hardware.vibrator-service"
-ADD_TO_WORK_DIR "$SOURCE_FIRMWARE" "vendor" "etc/vintf/manifest/vendor.samsung.hardware.vibrator-default.xml"
-ADD_TO_WORK_DIR "$SOURCE_FIRMWARE" "vendor" "lib64/vendor.samsung.hardware.vibrator-V5-ndk_platform.so"
+ADD_TO_WORK_DIR "SM-S901B/EUX/350330051234562" "vendor" "bin/hw/vendor.samsung.hardware.vibrator-service"
+ADD_TO_WORK_DIR "SM-S901B/EUX/350330051234562" "vendor" "etc/vintf/manifest/vendor.samsung.hardware.vibrator-default.xml"
+ADD_TO_WORK_DIR "SM-S901B/EUX/350330051234562" "vendor" "lib64/vendor.samsung.hardware.vibrator-V5-ndk_platform.so"
 
 EVAL "echo \"service sec-vibrator-aidl /vendor/bin/hw/vendor.samsung.hardware.vibrator-service\" > \"$WORK_DIR/vendor/etc/init/vendor.samsung.hardware.vibrator-default.rc\""
 EVAL "echo \"    class hal\" >> \"$WORK_DIR/vendor/etc/init/vendor.samsung.hardware.vibrator-default.rc\""
@@ -40,7 +41,7 @@ LOG_STEP_OUT
 ADD_TO_WORK_DIR "a14nsxx" "system" "system/lib64/libfmradio_jni.so" 0 0 644 "u:object_r:system_lib_file:s0"
 
 # VlsMesDetector blobs
-ADD_TO_WORK_DIR "$SOURCE_FIRMWARE" "vendor" "etc/VslMesDetector"
+ADD_TO_WORK_DIR "SM-S901B/EUX/350330051234562" "vendor" "etc/VslMesDetector"
 
 LOG_STEP_IN "- Adding 32-bit WFD blobs"
 BLOBS_LIST="
@@ -91,7 +92,7 @@ lib64/android.hardware.wifi.supplicant@1.3.so
 lib64/android.hardware.wifi.supplicant@1.4.so
 "
 for blob in $BLOBS_LIST; do
-    ADD_TO_WORK_DIR "$SOURCE_FIRMWARE" "vendor" "$blob"
+    ADD_TO_WORK_DIR "SM-S901B/EUX/350330051234562" "vendor" "$blob"
 done
 
 ADD_TO_WORK_DIR "$MODPATH" "vendor" "bin/hw/wpa_supplicant" 0 2000 755 "u:object_r:hal_wifi_supplicant_default_exec:s0"
