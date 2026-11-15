@@ -36,11 +36,23 @@ if [[ "$SOURCE_PRODUCT_SHIPPING_API_LEVEL" != "$TARGET_PRODUCT_SHIPPING_API_LEVE
         "isSupported(Landroid/content/Context;)Z" \
         "$SOURCE_PRODUCT_SHIPPING_API_LEVEL" \
         "$TARGET_PRODUCT_SHIPPING_API_LEVEL"
-    SMALI_PATCH "system" "system/framework/services.jar" \
-        "smali/com/android/server/enterprise/hdm/HdmVendorController.smali" "replace" \
-        "<init>()V" \
-        "$SOURCE_PRODUCT_SHIPPING_API_LEVEL" \
-        "$TARGET_PRODUCT_SHIPPING_API_LEVEL"
+    if [[ "$TARGET_CODENAME" == "a21s" && "$SOURCE_FIRMWARE" == SM-S711B/* ]]; then
+        # S711BXXSJGZI6 no longer has the old constructor or its API literal.
+        # Keep the native HDM implementation; do not alter policy enforcement.
+        HDM_SMALI="$APKTOOL_DIR/system/framework/services.jar/smali/com/android/server/enterprise/hdm/HdmVendorController.smali"
+        HDM_SHA="$(sha256sum "$HDM_SMALI" | cut -d ' ' -f 1)"
+        if [[ "$HDM_SHA" != "9ca30d8769a2074a976653aa2181e756b279419808b23aa7fd837747cb9014d8" ]]; then
+            ABORT "Unreviewed S711B HdmVendorController: $HDM_SHA"
+        fi
+        LOG "- Retaining S711B HDM controller (legacy constructor absent)"
+        unset HDM_SMALI HDM_SHA
+    else
+        SMALI_PATCH "system" "system/framework/services.jar" \
+            "smali/com/android/server/enterprise/hdm/HdmVendorController.smali" "replace" \
+            "<init>()V" \
+            "$SOURCE_PRODUCT_SHIPPING_API_LEVEL" \
+            "$TARGET_PRODUCT_SHIPPING_API_LEVEL"
+    fi
     SMALI_PATCH "system" "system/framework/services.jar" \
         "smali/com/android/server/knox/dar/ddar/ta/TAProxy.smali" "replace" \
         "updateServiceHolder(Z)V" \
